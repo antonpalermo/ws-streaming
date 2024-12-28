@@ -1,0 +1,15 @@
+{
+  "name": "ws-streaming",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.1"
+}
