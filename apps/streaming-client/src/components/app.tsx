@@ -51,35 +51,23 @@ export default function App() {
     recorder.ondataavailable = async (e) => {
       try {
         if (websocket?.readyState === WebSocket.OPEN) {
-          websocket.send(
-            JSON.stringify({
-              type: "RECORDING_START:REQUEST",
-              chunk: new Uint8Array(await e.data.arrayBuffer()),
-            })
-          );
+          websocket.send(e.data);
         } else {
           console.error("WebSocket is not in OPEN state");
           recorder.stop();
+          websocket.close();
         }
       } catch (error) {
         console.error("Error sending data:", error);
         recorder.stop();
+        websocket.close();
       }
     };
 
     recorder.onstop = () => {
       setIsRecording(false);
-      if (websocket?.readyState === WebSocket.OPEN) {
-        websocket.send(
-          JSON.stringify({
-            type: "RECORDING_END:REQUEST",
-            chunk: new Uint8Array([]),
-          })
-        );
-      } else {
-        console.error("WebSocket is not in OPEN state");
-        recorder.stop();
-      }
+      recorder.stop();
+      websocket.close();
     };
 
     recorder.start(100);

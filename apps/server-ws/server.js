@@ -12,22 +12,16 @@ server.on("connection", (ws) => {
   console.log("New client connected");
 
   ws.on("message", async (message) => {
-    const data = JSON.parse(message);
-    switch (data.type) {
-      case "RECORDING_START:REQUEST":
-        console.log(data);
-        chunks.push(data.chunk);
-        break;
-      case "RECORDING_END:REQUEST":
-        fs.writeFileSync(
-          `.recordings/${crypto.randomUUID()}.webm`,
-          buffer.Buffer.from(chunks)
-        );
-        break;
-    }
+    chunks.push(message);
   });
 
-  ws.on("close", () => {
+  ws.on("close", async () => {
+    const videoBlob = new Blob(chunks, { type: "video/webm; codecs=vp9" });
+    const videoBuffer = Buffer.from(await videoBlob.arrayBuffer());
+    fs.writeFileSync(
+      `.recordings/pre-${crypto.randomUUID()}.webm`,
+      videoBuffer
+    );
     console.log("Client disconnected");
   });
 });
