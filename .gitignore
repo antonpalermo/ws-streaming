@@ -131,3 +131,6 @@ dist
 
 # turbo files
 .turbo
+
+# recorded files
+.recordings
