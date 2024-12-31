@@ -6,6 +6,33 @@ export default function App() {
   const webSocketRef = React.useRef<WebSocket | null>(null);
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
 
+  async function handleOnDataAvailable(e: BlobEvent) {
+    const websocket = webSocketRef.current;
+    const recorder = mediaRecorderRef.current;
+    try {
+      if (websocket?.readyState === WebSocket.OPEN) {
+        websocket.send(e.data);
+      } else {
+        console.error("WebSocket is not in OPEN state");
+        recorder?.stop();
+        websocket?.close();
+      }
+    } catch (error) {
+      console.error("Error sending data:", error);
+      recorder?.stop();
+      websocket?.close();
+    }
+  }
+
+  async function handleOnStop() {
+    const websocket = webSocketRef.current;
+    const recorder = mediaRecorderRef.current;
+
+    setIsRecording(false);
+    recorder?.stop();
+    websocket?.close();
+  }
+
   React.useEffect(() => {
     if (
       !webSocketRef.current ||
@@ -45,30 +72,10 @@ export default function App() {
     });
 
     mediaRecorderRef.current = new MediaRecorder(stream);
-    const websocket = webSocketRef.current;
     const recorder = mediaRecorderRef.current;
 
-    recorder.ondataavailable = async (e) => {
-      try {
-        if (websocket?.readyState === WebSocket.OPEN) {
-          websocket.send(e.data);
-        } else {
-          console.error("WebSocket is not in OPEN state");
-          recorder.stop();
-          websocket.close();
-        }
-      } catch (error) {
-        console.error("Error sending data:", error);
-        recorder.stop();
-        websocket.close();
-      }
-    };
-
-    recorder.onstop = () => {
-      setIsRecording(false);
-      recorder.stop();
-      websocket.close();
-    };
+    recorder.ondataavailable = handleOnDataAvailable;
+    recorder.onstop = handleOnStop;
 
     recorder.start(100);
     setIsRecording(true);
